@@ -1,10 +1,11 @@
 <template lang="pug">
 .app
+  .loading-screen(v-if="loading")
   .title Hakuna Papaya
   .card.card-img
     .file-upload
       .image-preview(v-if="status" :style="{ 'background-image': 'url(' + imagePath + ')' }")
-      input(type="file" ref="fileInput" @change="fileUploadHandler")
+      input(type="file" ref="fileInput" accept="image/*" @change="fileUploadHandler")
     button.btn-upload(@click="$refs.fileInput.click()") Upload image of Papaya
   .card.card-status
     p.status(:class="{ 'opacity-50': !status }") {{ result }}
@@ -13,10 +14,14 @@
 <script lang="ts">
 import { defineComponent, ref } from '@vue/composition-api';
 
+import axios from 'axios';
+
 const App = defineComponent({
   setup() {
     const result = ref('Please upload papaya...');
     const status = ref(false);
+
+    const loading = ref(false);
 
     // REFs
     const fileInput = ref(null);
@@ -24,7 +29,7 @@ const App = defineComponent({
     const imagePath = ref('');
     const imageFile = ref(null);
 
-    const fileUploadHandler = (e: any) => {
+    const fileUploadHandler = async (e: any) => {
       const files = e.target.files || e.dataTransfer.files;
       if (!files.length) {
         return;
@@ -33,14 +38,26 @@ const App = defineComponent({
       // eslint-disable-next-line
       (imageFile.value as any) = files[0];
 
+      const formData = new FormData();
+      formData.append('file', (imageFile.value as any));
+
+      loading.value = true;
+      const res: any = await axios.post('http://localhost:5000/api/predict', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      loading.value = false;
+
       // UPDATE STATUS HERE! (Get result from backend)
       status.value = true;
-      result.value = 'This papaya is Ripe!';
+      result.value = res.data.payload.status;
     };
 
     return {
       result,
       status,
+      loading,
 
       fileInput,
 
@@ -58,6 +75,10 @@ export default App;
 *, *::before, *::after { @apply box-border m-0 p-0; }
 
 .app {
+  .loading-screen {
+    @apply fixed inset-0 bg-gray-800 bg-opacity-20 pointer-events-auto cursor-wait;
+    z-index: 9999;
+  }
   @apply py-4 flex flex-col justify-center items-center h-screen bg-center bg-cover;
   background-image: url('./assets/images/app_background.png');
   .title { @apply font-bold text-4xl sm:text-5xl; }

@@ -11,6 +11,7 @@
     "@tailwindcss/postcss7-compat": "^2.0.2",
     "@vue/composition-api": "^1.0.0-rc.12",
     "autoprefixer": "^9",
+    "axios": "^0.23.0",
     "core-js": "^3.6.5",
     "postcss": "^7",
     "pug": "^3.0.2",

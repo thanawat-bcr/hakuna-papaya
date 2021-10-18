@@ -3,10 +3,11 @@
   .title Hakuna Papaya
   .card.card-img
     .file-upload
-      input(type="file" ref="fileInput")
+      .image-preview(v-if="status" :style="{ 'background-image': 'url(' + imagePath + ')' }")
+      input(type="file" ref="fileInput" @change="fileUploadHandler")
     button.btn-upload(@click="$refs.fileInput.click()") Upload image of Papaya
   .card.card-status
-    p.status(:class="{ 'opacity-50': status }") {{ result }}
+    p.status(:class="{ 'opacity-50': !status }") {{ result }}
 </template>
 
 <script lang="ts">
@@ -15,15 +16,37 @@ import { defineComponent, ref } from '@vue/composition-api';
 const App = defineComponent({
   setup() {
     const result = ref('Please upload papaya...');
-    const status = ref(true);
+    const status = ref(false);
 
+    // REFs
     const fileInput = ref(null);
+
+    const imagePath = ref('');
+    const imageFile = ref(null);
+
+    const fileUploadHandler = (e: any) => {
+      const files = e.target.files || e.dataTransfer.files;
+      if (!files.length) {
+        return;
+      }
+      imagePath.value = URL.createObjectURL(files[0]);
+      // eslint-disable-next-line
+      (imageFile.value as any) = files[0];
+
+      // UPDATE STATUS HERE! (Get result from backend)
+      status.value = true;
+      result.value = 'This papaya is Ripe!';
+    };
 
     return {
       result,
       status,
 
       fileInput,
+
+      imagePath,
+
+      fileUploadHandler,
     };
   },
 });
@@ -37,23 +60,23 @@ export default App;
 .app {
   @apply py-4 flex flex-col justify-center items-center h-screen bg-center bg-cover;
   background-image: url('./assets/images/app_background.png');
-  .title { @apply font-bold text-4xl md:text-5xl; }
+  .title { @apply font-bold text-4xl sm:text-5xl; }
   .card {
     @apply my-4 flex flex-col justify-center items-center;
     width: 18rem;
-    @media (min-width: 768px) { width: 22rem; }
+    @media (min-width: 640px) { width: 22rem; }
     background: rgba(255, 255, 255, 0.6);
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     border-radius: 20px;
     &.card-img {
       @apply p-4;
       height: 26rem;
-      input[type="file"] { @apply w-full h-full opacity-0 focus:outline-none cursor-pointer; }
       .file-upload {
+        input[type="file"] { @apply w-full h-full opacity-0 focus:outline-none cursor-pointer; }
         @apply mb-3 cursor-pointer relative transition;
         width: 16rem;
         height: 16rem;
-        @media (min-width: 768px) { width: 20rem; height: 20rem; }
+        @media (min-width: 640px) { width: 20rem; height: 20rem; }
 
         // border: rgb(180, 180, 180) 2px dashed;
         border-radius: 0.5rem;
@@ -61,6 +84,11 @@ export default App;
         &:hover {
           background-color: rgba(37, 37, 37, 0.75);
         }
+
+        .image-preview {
+          @apply w-full h-full bg-red-200 absolute inset-0 z-50 pointer-events-none bg-center bg-cover;
+        }
+
         &::before {
           content: '';
           @apply absolute w-44 h-44 bg-no-repeat bg-center bg-contain;
@@ -75,17 +103,17 @@ export default App;
         &:hover { @apply bg-primary-200; }
         &::after {
           content: '';
-          @apply w-7 h-7 md:w-8 md:h-8 bg-contain bg-center bg-no-repeat absolute left-0;
+          @apply w-7 h-7 sm:w-8 sm:h-8 bg-contain bg-center bg-no-repeat absolute left-0;
           top: 50%;
           transform: translate(0.5rem, -50%);
-          @media (min-width: 768px) { transform: translate(2rem, -50%); }
+          @media (min-width: 640px) { transform: translate(2rem, -50%); }
           background-image: url('./assets/images/photo.svg');
         }
       }
     }
     &.card-status {
       height: 5rem;
-      p { @apply text-lg md:text-2xl; }
+      p { @apply text-lg sm:text-2xl; }
     }
   }
 }
